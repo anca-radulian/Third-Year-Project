@@ -4,20 +4,35 @@ from mpl_toolkits.mplot3d import Axes3D
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
-ax.set_xlim(0, 30)
-ax.set_ylim(0, 30)
-ax.set_zlim(0, 30)
+ax.set_xlim(0, 50)
+ax.set_ylim(0, 50)
+ax.set_zlim(0, 50)
 
 # Coordinates chosen
 user_x = 20
 user_y = 10
 user_z = 30
 
-c = np.array([user_x, user_y, user_z])
-o = np.array([10, 15, 10])
+c = np.array([user_x, user_y, user_z])  # end
+o = np.array([10, 15, 10])  # start
+
+mid = (user_x + o[0]) /2 , (user_y + o[1]) /2, (user_z + o[2]) /2
+O = np.array([0, 0, 0])
+center = np.array([30, 42.5, 20])
 
 # plot the axis of the
-ax.plot(*zip(c, o), color = 'red')
+#ax.plot(*zip(c, O), color = 'red')
+ax.plot(*zip(mid, center), color = 'red')
+ax.plot(*zip(c, o), color = 'blue')
+
+ax.scatter(mid[0], mid[1], mid[2], color = 'yellow')
+ax.scatter(center[0], center[1], center[2], color = 'yellow')
+
+
+ax.scatter(c[0], c[1], c[2], color = 'purple')
+ax.scatter(o[0], o[1], o[2], color = 'pink')
+
+
 
 # radius of the circle
 R = 3
@@ -35,7 +50,7 @@ Z = (-user_x *( X - user_x) - user_y * (Y - user_y)) / user_z + user_z
 # =========================
 
 # Equation of the circle
-#    (x,y,z) = (x0, y0, z0) + cos(theta)u + sin(theta)v + t*w
+#    (x,y,z) = (x0, y0, z0) + R cos(theta)u + R sin(theta)v + t*w
 # where theta varies over the interval 0 to 2pi and t ranges over the
 # the set of real numbers and
 # u and v are unit vectors that are (1) mutually perpendicular and (2) are perpendicular
@@ -68,6 +83,31 @@ theta = np.linspace(0, 2 * np.pi, 100)
 t, theta = np.meshgrid(t, theta)
 # generate coordinates for surface
 X, Y, Z = [o[i] + w[i] * t + R * np.sin(theta) * v[i] + R * np.cos(theta) * u[i] for i in [0, 1, 2]]
-ax.plot_surface(X, Y, Z, color = 'purple')
+# ax.plot_surface(X, Y, Z, color = 'purple')
+
+# ----------------------------- Arc plotting ---------------------------------------------------------------------
+
+# Let X and W be unit vectors in the directions of A−O, and B−O respectively.
+# Then let Z be the unit vector in the direction of X×W, and let Y=W×X.
+# We now have an orthonormal set of vectors X,Y,Z.
+# If r is the radius of the circle, then the curve can be parameterized
+# P(θ)=O+(rcosθ)X+(rsinθ)Y
+# You should use values of θ between zero and ϕ, where ϕ is the angle between OA and OB.
+R = np.linalg.norm(c - center)
+
+X_arc = (o - center)
+Y_arc = (c - center)
+
+
+alpha = np.arccos(np.clip((np.dot(X_arc, Y_arc) / (np.linalg.norm(X_arc) * np.linalg.norm(X_arc)) ), -1, 1))
+cos_alpha = np.cos(alpha)
+sin_alpha = np.sin(alpha)
+
+th = np.linspace(0, alpha, 50)
+
+x_curve, y_curve, z_curve =[center[i] + ((sin_alpha * np.cos(th) - cos_alpha * np.sin(th)) * X_arc[i] + np.sin(th) * Y_arc[i])/ sin_alpha for i in [0,1,2]]
+
+ax.scatter(x_curve, y_curve, z_curve, color ='purple')
+
 
 plt.show()

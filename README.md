@@ -21,3 +21,11 @@ Resources used:
     http://mathforum.org/library/drmath/view/51734.html
     https://stackoverflow.com/questions/32317247/how-to-draw-a-cylinder-using-matplotlib-along-length-of-point-x1-y1-and-x2-y2?rq=1
     
+    Solid cylinder:
+    https://stackoverflow.com/questions/39822480/plotting-a-solid-cylinder-centered-on-a-plane-in-matplotlib
+    
+    Arc between the tip of two vectors
+    https://math.stackexchange.com/questions/1507248/find-arc-between-two-tips-of-vectors-in-3d
+    
+    Arc in 3d coordinate system
+    https://math.stackexchange.com/questions/329749/draw-an-arc-in-3d-coordinate-system
