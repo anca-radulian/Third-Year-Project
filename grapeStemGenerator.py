@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import sympy as sym
 from mpl_toolkits.mplot3d import Axes3D
 
 fig = plt.figure()
@@ -9,30 +10,18 @@ ax.set_ylim(0, 50)
 ax.set_zlim(0, 50)
 
 # Coordinates chosen
-user_x = 20
-user_y = 10
-user_z = 30
+user_x = 20.0
+user_y = 10.0
+user_z = 30.0
 
-c = np.array([user_x, user_y, user_z])  # end
-o = np.array([10, 15, 10])  # start
-
-mid = (user_x + o[0]) /2 , (user_y + o[1]) /2, (user_z + o[2]) /2
-O = np.array([0, 0, 0])
-center = np.array([30, 42.5, 20])
+B = np.array([user_x, user_y, user_z])  # end
+A = np.array([10.0, 15.0, 10.0])  # start
 
 # plot the axis of the
-#ax.plot(*zip(c, O), color = 'red')
-ax.plot(*zip(mid, center), color = 'red')
-ax.plot(*zip(c, o), color = 'blue')
+ax.plot(*zip(B, A), color='blue')
 
-ax.scatter(mid[0], mid[1], mid[2], color = 'yellow')
-ax.scatter(center[0], center[1], center[2], color = 'yellow')
-
-
-ax.scatter(c[0], c[1], c[2], color = 'purple')
-ax.scatter(o[0], o[1], o[2], color = 'pink')
-
-
+ax.scatter(B[0], B[1], B[2], color='purple')
+ax.scatter(A[0], A[1], A[2], color='pink')
 
 # radius of the circle
 R = 3
@@ -42,8 +31,8 @@ R = 3
 # a(x−x0)+b(y−y0)+c(z−z0)=0
 x = np.linspace(0, 40, 10)
 y = np.linspace(0, 40, 10)
-X,Y = np.meshgrid(x, y)
-Z = (-user_x *( X - user_x) - user_y * (Y - user_y)) / user_z + user_z
+X, Y = np.meshgrid(x, y)
+Z = (-user_x * (X - user_x) - user_y * (Y - user_y)) / user_z + user_z
 
 # ax.plot_surface(X, Y, Z)
 
@@ -57,7 +46,7 @@ Z = (-user_x *( X - user_x) - user_y * (Y - user_y)) / user_z + user_z
 # to the axis , w = unit vector of the chosen axis
 
 # vector between the two points
-w = c - o
+w = A - B
 # mag of vector
 mag = np.linalg.norm(w)
 
@@ -82,10 +71,48 @@ theta = np.linspace(0, 2 * np.pi, 100)
 # use meshgrid to make 2d arrays
 t, theta = np.meshgrid(t, theta)
 # generate coordinates for surface
-X, Y, Z = [o[i] + w[i] * t + R * np.sin(theta) * v[i] + R * np.cos(theta) * u[i] for i in [0, 1, 2]]
+X, Y, Z = [A[i] + w[i] * t + R * np.sin(theta) * v[i] + R * np.cos(theta) * u[i] for i in [0, 1, 2]]
 # ax.plot_surface(X, Y, Z, color = 'purple')
 
-# ----------------------------- Arc plotting ---------------------------------------------------------------------
+# ----------------------------- Arc plotting  ---------------------------------------------------------------------
+# Let V be the normal vector on the plane defined by A, B and the centre O. Then we calculate the equation of the plane
+# using xv(x−xm)+yv(y−ym)+zv(z−zm)=0. Let P another point in the plane. Xp and yp be random values.
+phi = np.deg2rad(60)  # 60 degrees in radians
+P = np.array([5.0, 30.0, 0.0])
+M = (A + B) / 2
+AB = np.linalg.norm(A - B)
+V = A - B
+
+P[2] = (-V[0]*(P[0] - M[0]) - V[1]*(P[1] - M[1])) / V[2] + M[2]
+print(P, "v values")
+eq = V[0]*(P[0] - M[0]) +  V[1]*(P[1] - M[1]) + V[2]*(P[2] - M[2])
+print(eq, "plane eq")
+
+Rad = AB/ (2* np.tan(phi/2))
+Pp = P - M
+print(Pp , "p prime values")
+
+Cp = Rad/ np.linalg.norm(P - M) * Pp
+print(Cp , "c prime values")
+
+C = Cp + M
+
+print(C, "center values")
+
+
+ax.scatter(C[0], C[1], C[2], color='green')
+
+ax.plot(*zip(C, A), color = 'red', linestyle='dashed')
+ax.plot(*zip(C, B), color = 'red', linestyle='dashed')
+
+
+
+
+
+
+
+
+
 
 # Let X and W be unit vectors in the directions of A−O, and B−O respectively.
 # Then let Z be the unit vector in the direction of X×W, and let Y=W×X.
@@ -93,21 +120,18 @@ X, Y, Z = [o[i] + w[i] * t + R * np.sin(theta) * v[i] + R * np.cos(theta) * u[i]
 # If r is the radius of the circle, then the curve can be parameterized
 # P(θ)=O+(rcosθ)X+(rsinθ)Y
 # You should use values of θ between zero and ϕ, where ϕ is the angle between OA and OB.
-R = np.linalg.norm(c - center)
 
-X_arc = (o - center)
-Y_arc = (c - center)
+X_arc = (A - C)
+Y_arc = (B - C)
 
-
-alpha = np.arccos(np.clip((np.dot(X_arc, Y_arc) / (np.linalg.norm(X_arc) * np.linalg.norm(X_arc)) ), -1, 1))
-cos_alpha = np.cos(alpha)
-sin_alpha = np.sin(alpha)
+alpha = phi
 
 th = np.linspace(0, alpha, 50)
 
-x_curve, y_curve, z_curve =[center[i] + ((sin_alpha * np.cos(th) - cos_alpha * np.sin(th)) * X_arc[i] + np.sin(th) * Y_arc[i])/ sin_alpha for i in [0,1,2]]
+x_curve, y_curve, z_curve \
+    = [C[i] + ((np.sin(alpha) * np.cos(th) - np.cos(alpha) * np.sin(th)) * X_arc[i] + np.sin(th) * Y_arc[i]) /np.sin(alpha)
+       for i in [0, 1, 2]]
 
-ax.scatter(x_curve, y_curve, z_curve, color ='purple')
-
+ax.scatter(x_curve, y_curve, z_curve, color='purple')
 
 plt.show()
