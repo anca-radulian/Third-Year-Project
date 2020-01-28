@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import sympy as sym
 from mpl_toolkits.mplot3d import Axes3D
 
 fig = plt.figure()
@@ -23,8 +22,7 @@ ax.plot(*zip(B, A), color='blue')
 ax.scatter(B[0], B[1], B[2], color='purple')
 ax.scatter(A[0], A[1], A[2], color='pink')
 
-# radius of the circle
-R = 3
+
 
 #  ==== Plotting the perpendicular plane =====
 # formula to calculate the plane equation
@@ -38,81 +36,29 @@ Z = (-user_x * (X - user_x) - user_y * (Y - user_y)) / user_z + user_z
 
 # =========================
 
-# Equation of the circle
-#    (x,y,z) = (x0, y0, z0) + R cos(theta)u + R sin(theta)v + t*w
-# where theta varies over the interval 0 to 2pi and t ranges over the
-# the set of real numbers and
-# u and v are unit vectors that are (1) mutually perpendicular and (2) are perpendicular
-# to the axis , w = unit vector of the chosen axis
-
-# vector between the two points
-w = A - B
-# mag of vector
-mag = np.linalg.norm(w)
-
-# unit vector
-w = w / mag
-
-# make some vector not in the same direction as v
-not_w = np.array([1, 0, 0])
-if (w == not_w).all():
-    not_w = np.array([0, 1, 0])
-
-# make vector perpendicular to v
-u = np.cross(w, not_w)
-# normalize n1
-u /= np.linalg.norm(u)
-# make unit vector perpendicular to v and n1
-v = np.cross(w, u)
-
-# surface ranges over t from 0 to length of axis and 0 to 2*pi
-t = np.linspace(0, mag, 100)
-theta = np.linspace(0, 2 * np.pi, 100)
-# use meshgrid to make 2d arrays
-t, theta = np.meshgrid(t, theta)
-# generate coordinates for surface
-X, Y, Z = [A[i] + w[i] * t + R * np.sin(theta) * v[i] + R * np.cos(theta) * u[i] for i in [0, 1, 2]]
-# ax.plot_surface(X, Y, Z, color = 'purple')
 
 # ----------------------------- Arc plotting  ---------------------------------------------------------------------
 # Let V be the normal vector on the plane defined by A, B and the centre O. Then we calculate the equation of the plane
 # using xv(x−xm)+yv(y−ym)+zv(z−zm)=0. Let P another point in the plane. Xp and yp be random values.
-phi = np.deg2rad(60)  # 60 degrees in radians
+phi = np.deg2rad(160)  # 60 degrees in radians
 P = np.array([5.0, 30.0, 0.0])
 M = (A + B) / 2
 AB = np.linalg.norm(A - B)
 V = A - B
 
-P[2] = (-V[0]*(P[0] - M[0]) - V[1]*(P[1] - M[1])) / V[2] + M[2]
-print(P, "v values")
-eq = V[0]*(P[0] - M[0]) +  V[1]*(P[1] - M[1]) + V[2]*(P[2] - M[2])
-print(eq, "plane eq")
+P[2] = (-V[0] * (P[0] - M[0]) - V[1] * (P[1] - M[1])) / V[2] + M[2]
 
-Rad = AB/ (2* np.tan(phi/2))
+Rad = AB / (2 * np.tan(phi / 2))
 Pp = P - M
-print(Pp , "p prime values")
 
-Cp = Rad/ np.linalg.norm(P - M) * Pp
-print(Cp , "c prime values")
+Cp = Rad / np.linalg.norm(P - M) * Pp
 
 C = Cp + M
 
-print(C, "center values")
-
-
 ax.scatter(C[0], C[1], C[2], color='green')
 
-ax.plot(*zip(C, A), color = 'red', linestyle='dashed')
-ax.plot(*zip(C, B), color = 'red', linestyle='dashed')
-
-
-
-
-
-
-
-
-
+ax.plot(*zip(C, A), color='red', linestyle='dashed')
+ax.plot(*zip(C, B), color='red', linestyle='dashed')
 
 # Let X and W be unit vectors in the directions of A−O, and B−O respectively.
 # Then let Z be the unit vector in the direction of X×W, and let Y=W×X.
@@ -126,12 +72,52 @@ Y_arc = (B - C)
 
 alpha = phi
 
-th = np.linspace(0, alpha, 50)
+th = np.linspace(0, alpha, 100)
 
 x_curve, y_curve, z_curve \
-    = [C[i] + ((np.sin(alpha) * np.cos(th) - np.cos(alpha) * np.sin(th)) * X_arc[i] + np.sin(th) * Y_arc[i]) /np.sin(alpha)
+    = [C[i] + ((np.sin(alpha) * np.cos(th) - np.cos(alpha) * np.sin(th)) * X_arc[i] + np.sin(th) * Y_arc[i]) / np.sin(
+    alpha)
        for i in [0, 1, 2]]
 
 ax.scatter(x_curve, y_curve, z_curve, color='purple')
 
+# ================================= Cylinder plotting =================================================================
+
+# Equation of the circle
+#    (x,y,z) = (x0, y0, z0) + R cos(theta)u + R sin(theta)v
+# where theta varies over the interval 0 to 2pi and t ranges over the
+# the set of real numbers and
+# u and v are unit vectors that are mutually perpendicular
+
+# Angle to determine the circle
+theta = np.linspace(0, 2 * np.pi, 100)
+# radius of the circle
+R = 3
+
+for y in range(0, 100):
+    P = np.array([x_curve[y], y_curve[y], z_curve[y]])
+
+    # vector in the plane of the circle
+    w = C - P
+    mag = np.linalg.norm(w)
+    w = w / mag
+
+    # make some vector not in the same direction as w
+    if w[1] == 0 and w[2] == 0:
+        u = np.cross(w, [0, 1, 0])
+    else:
+        u = np.cross(w, [1, 0, 0])
+
+    # normalize u
+    u /= np.linalg.norm(u)
+
+    # another vector in the circle plane orthogonal on w
+    v = np.cross(u, w)
+
+    X, Y, Z = [P[i] + R * np.sin(theta) * w[i] + R * np.cos(theta) * v[i] for i in [0, 1, 2]]
+    ax.scatter(X, Y, Z, color='blue', marker="," )
+
+    for j in range(0, 0, -1):
+        X, Y, Z = [P[i] + j * np.sin(theta) * w[i] + j * np.cos(theta) * v[i] for i in [0, 1, 2]]
+        ax.scatter(X, Y, Z, color='red', marker=",")
 plt.show()
