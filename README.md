@@ -29,3 +29,9 @@ Resources used:
     
     Arc in 3d coordinate system
     https://math.stackexchange.com/questions/329749/draw-an-arc-in-3d-coordinate-system
+    
+    GUI choice
+    https://docs.python.org/3/faq/gui.html
+    
+    Tkinter Tutorial
+    https://www.datacamp.com/community/tutorials/gui-tkinter-python

@@ -1,6 +1,6 @@
 import numpy as np
 
-PGM_SIZE = 150
+PGM_SIZE = 250
 
 
 class DigitalPhantomGenerator:

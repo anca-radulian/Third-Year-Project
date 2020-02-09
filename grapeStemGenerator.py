@@ -8,9 +8,9 @@ from mpl_toolkits.mplot3d import Axes3D
 # Let V be the normal vector on the plane defined by A, B and the centre O. Then we calculate the equation of the plane
 # using xv(x−xm)+yv(y−ym)+zv(z−zm)=0. Let P another point in the plane. Xp and yp be random values.
 def generate_arc_coordinates(A, B, curve_angle):
-    A = np.array(A)
-    B = np.array(B)
-    phi = np.deg2rad(curve_angle)  # 60 degrees in radians
+    A = np.array(A, dtype=float)
+    B = np.array(B, dtype=float)
+    phi = np.deg2rad(curve_angle)
     P = np.array([5.0, 30.0, 0.0])  # random point
     M = (A + B) / 2
     AB = np.linalg.norm(A - B)
