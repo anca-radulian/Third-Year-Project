@@ -12,6 +12,8 @@ def generate_arc_coordinates(A, B, curve_angle):
     B = np.array(B, dtype=float)
     phi = np.deg2rad(curve_angle)
     P = np.array([5.0, 30.0, 0.0])  # random point
+    if A[2] == B[2]:
+        B[2] = B[2] + 0.01  # so the M point won't have the z coord 0
     M = (A + B) / 2
     AB = np.linalg.norm(A - B)
     V = A - B
@@ -35,10 +37,8 @@ def generate_arc_coordinates(A, B, curve_angle):
 
     th = np.linspace(0, phi, 500)
     x_curve, y_curve, z_curve \
-        = [
-        C[i] + ((np.sin(phi) * np.cos(th) - np.cos(phi) * np.sin(th)) * X_arc[i] + np.sin(th) * Y_arc[i]) / np.sin(
-            phi)
-        for i in [0, 1, 2]]
+        = [C[i] + ((np.sin(phi) * np.cos(th) - np.cos(phi) * np.sin(th)) * X_arc[i] + np.sin(th) * Y_arc[i]) / np.sin(
+            phi) for i in [0, 1, 2]]
 
     return x_curve, y_curve, z_curve, C
 
@@ -100,8 +100,8 @@ def plot_points(X, Y, Z, limit, A, B, C):
     ax.plot(*zip(C, B), color='red', linestyle='dashed')
     # ax.plot(*zip(B, A), color='blue')
     ax.scatter(X, Y, Z, color='blue')
-    plt.show()
 
+    return fig
 
 #  ==== Plotting the perpendicular plane =====
 # formula to calculate the plane equation
