@@ -30,7 +30,7 @@ def generate_arc_coordinates(A, B, curve_angle):
     # Then let Z be the unit vector in the direction of X×W, and let Y=W×X.
     # We now have an orthonormal set of vectors X,Y,Z.
     # If r is the radius of the circle, then the curve can be parameterized
-    # P(θ)=O+(rcosθ)X+(rsinθ)Y
+    # P = C + (sin(𝛼−𝜃)𝑢+sin(𝜃)𝑣) /sin(𝛼)
     # You should use values of θ between zero and ϕ, where ϕ is the angle between OA and OB.
     X_arc = (A - C)
     Y_arc = (B - C)
@@ -38,7 +38,7 @@ def generate_arc_coordinates(A, B, curve_angle):
     th = np.linspace(0, phi, 500)
     x_curve, y_curve, z_curve \
         = [C[i] + ((np.sin(phi) * np.cos(th) - np.cos(phi) * np.sin(th)) * X_arc[i] + np.sin(th) * Y_arc[i]) / np.sin(
-            phi) for i in [0, 1, 2]]
+        phi) for i in [0, 1, 2]]
 
     return x_curve, y_curve, z_curve, C
 
@@ -59,15 +59,14 @@ def generate_cylinder_coordinates(x_curve, y_curve, z_curve, R, C):
 
         # vector in the plane of the circle
         w = C - P
-        mag = np.linalg.norm(w)
-        w = w / mag
+        w /= np.linalg.norm(w)
 
-        # make some vector not in the same direction as w
-        if w[1] == 0 and w[2] == 0:
-            u = np.cross(w, [0, 1, 0])
+        if y == x_curve.size - 1:
+            Pp = np.array([x_curve[0], y_curve[0], z_curve[0]])
         else:
-            u = np.cross(w, [1, 0, 0])
+            Pp = np.array([x_curve[x_curve.size - 1], y_curve[x_curve.size - 1], z_curve[x_curve.size -1]])
 
+        u = C - Pp
         # normalize u
         u /= np.linalg.norm(u)
 
@@ -90,18 +89,42 @@ def generate_cylinder_coordinates(x_curve, y_curve, z_curve, R, C):
     return X_all, Y_all, Z_all
 
 
-def plot_points(X, Y, Z, limit, A, B, C):
+def plot_for_offset(X, Y, Z, x_arc, y_arc, z_arc):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
+    ax.scatter(X, Y, Z, color='blue', marker='.')
+    ax.set_xlim(0, 50)
+    ax.set_ylim(0, 50)
+    ax.set_zlim(0, 50)
+
+    # Used to return the plot as an image rray
+    fig.canvas.draw()  # draw the canvas, cache the renderer
+    image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
+    image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+
+    return image
+
+
+def plot_points(X, Y, Z, limit, A, B, C, fig,  x_arc, y_arc, z_arc):
+    ax = fig.add_subplot(111, projection='3d')
+    ax.mouse_init()
     ax.set_xlim(0, limit)
     ax.set_ylim(0, limit)
-    ax.scatter(C[0], C[1], C[2], color='green')
+    ax.set_zlim(0, limit)
+    ax.scatter(C[0], C[1], C[2], color='blue')
     ax.plot(*zip(C, A), color='red', linestyle='dashed')
     ax.plot(*zip(C, B), color='red', linestyle='dashed')
     # ax.plot(*zip(B, A), color='blue')
-    ax.scatter(X, Y, Z, color='blue')
+    ax.scatter(X, Y, Z, color='blue', marker='.')
+    #ax.scatter(x_arc, y_arc, z_arc, color='blue', marker='.')
+    ax.scatter(A[0], A[1], A[2], color='red')
+    ax.scatter(B[0], B[1], B[2], color='red')
+    ax.text2D(0.05, 0.95, "Number of points generated: " + str(X.size), transform=ax.transAxes)
 
-    return fig
+
+def create_figure():
+    return plt.figure()
+
 
 #  ==== Plotting the perpendicular plane =====
 # formula to calculate the plane equation
