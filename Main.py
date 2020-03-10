@@ -3,8 +3,8 @@ import time
 from matplotlib.backends._backend_tk import NavigationToolbar2Tk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
+import digitalPhantomGenerator
 import grapeStemGenerator
-from DigitalPhantomGenerator import DigitalPhantomGenerator
 import tkinter as tk
 from tkinter import messagebox, W, E, N, S
 
@@ -63,7 +63,6 @@ def generate_stem_phantom():
     B = [coord2_x.get(), coord2_y.get(), coord2_z.get()]
     x_arc, y_arc, z_arc, C = grapeStemGenerator.generate_arc_coordinates(A, B, curve_angle.get())
     X, Y, Z = grapeStemGenerator.generate_cylinder_coordinates(x_arc, y_arc, z_arc, radius_cylinder.get(), C)
-    print(time.time() - start, "generate points")
 
     if create_plot.get() == 1:
         button["state"] = tk.DISABLED
@@ -77,15 +76,16 @@ def generate_stem_phantom():
         toolbar.update()
         canvas.get_tk_widget().pack()
 
-    DigitalPhantomGenerator().create_digital_phantom_of_models('x', X, Y, Z)
-    DigitalPhantomGenerator().create_digital_phantom_of_models('y', X, Y, Z)
-    DigitalPhantomGenerator().create_digital_phantom_of_models('z', X, Y, Z)
+    digitalPhantomGenerator.create_digital_phantom_of_models('x', X, Y, Z)
+    digitalPhantomGenerator.create_digital_phantom_of_models('y', X, Y, Z)
+    digitalPhantomGenerator.create_digital_phantom_of_models('z', X, Y, Z)
+    print("%.2f - time in seconds to generate plot with %d" % (time.time() - start, X.size))
     messagebox.showinfo(title="Successful generation", message="The PGM files have been generated successfully!")
 
 
 def message_plot():
     if create_plot.get() == 1:
-        ans = messagebox.askquestion(title="Generate Plot", message="The generation of the plot will take some time."
+        ans = messagebox.askquestion(title="Generate Plot", message="The generation of the plot will take some time. "
                                                                     "Do you still want to proceed?")
 
         if ans == 'no':
@@ -126,7 +126,7 @@ coord2_label_y = tk.Label(window, text="Y").grid(row=5, column=2)
 coord2_label_z = tk.Label(window, text="Z").grid(row=5, column=4)
 
 curve_angle = tk.DoubleVar(value=150.0)
-radius_cylinder = tk.IntVar(value=2)
+radius_cylinder = tk.IntVar(value=5)
 
 curve_angle_label = tk.Label(window, text="Insert the curvature of the cylinder").grid(row=6, columnspan=3,
                                                                                        sticky=W)

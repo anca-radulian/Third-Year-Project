@@ -5,8 +5,8 @@ from mpl_toolkits.mplot3d import Axes3D
 
 # --------------------------------------- METHODS -----------------------------------
 
-# Let V be the normal vector on the plane defined by A, B and the centre O. Then we calculate the equation of the plane
-# using xv(x−xm)+yv(y−ym)+zv(z−zm)=0. Let P another point in the plane. Xp and yp be random values.
+# Let V be the normal vector on the plane defined by middle point of AB and the centre O. Then find a random point P
+# using the equation of the plane xv(x−xm)+yv(y−ym)+zv(z−zm)=0.
 def generate_arc_coordinates(A, B, curve_angle):
     A = np.array(A, dtype=float)
     B = np.array(B, dtype=float)
@@ -18,24 +18,24 @@ def generate_arc_coordinates(A, B, curve_angle):
     AB = np.linalg.norm(A - B)
     V = A - B
 
+    # Using plane equation calculate P
     P[2] = (-V[0] * (P[0] - M[0]) - V[1] * (P[1] - M[1])) / V[2] + M[2]
 
-    Rad = AB / (2 * np.tan(phi / 2))
+    # Height of the arc segment
+    H = AB / (2 * np.tan(phi / 2))
     Pp = P - M
 
-    Cp = Rad / np.linalg.norm(P - M) * Pp
+    Cp = H / np.linalg.norm(P - M) * Pp
     C = Cp + M
 
-    # Let X and W be unit vectors in the directions of A−O, and B−O respectively.
-    # Then let Z be the unit vector in the direction of X×W, and let Y=W×X.
-    # We now have an orthonormal set of vectors X,Y,Z.
-    # If r is the radius of the circle, then the curve can be parameterized
+    # The slerp formula is coordinate-free and gives you a constant-speed parametrization of the arc.
     # P = C + (sin(𝛼−𝜃)𝑢+sin(𝜃)𝑣) /sin(𝛼)
     # You should use values of θ between zero and ϕ, where ϕ is the angle between OA and OB.
     X_arc = (A - C)
     Y_arc = (B - C)
 
-    th = np.linspace(0, phi, 500)
+    # The central angle is divided in N number of sections
+    th = np.linspace(0, phi, int(AB * 3))
     x_curve, y_curve, z_curve \
         = [C[i] + ((np.sin(phi) * np.cos(th) - np.cos(phi) * np.sin(th)) * X_arc[i] + np.sin(th) * Y_arc[i]) / np.sin(
         phi) for i in [0, 1, 2]]
@@ -50,8 +50,8 @@ def generate_arc_coordinates(A, B, curve_angle):
 # the set of real numbers and
 # u and v are unit vectors that are mutually perpendicular
 def generate_cylinder_coordinates(x_curve, y_curve, z_curve, R, C):
-    # Angle to determine the circle
-    theta = np.linspace(0, 2 * np.pi, 300)
+    # Determine how many points will be used to draw the circle
+    theta = np.linspace(0, 2 * np.pi, int(2 * np.pi * R * 3))
 
     X_all, Y_all, Z_all = [], [], []
     for y in range(0, x_curve.size):
@@ -64,7 +64,7 @@ def generate_cylinder_coordinates(x_curve, y_curve, z_curve, R, C):
         if y == x_curve.size - 1:
             Pp = np.array([x_curve[0], y_curve[0], z_curve[0]])
         else:
-            Pp = np.array([x_curve[x_curve.size - 1], y_curve[x_curve.size - 1], z_curve[x_curve.size -1]])
+            Pp = np.array([x_curve[x_curve.size - 1], y_curve[x_curve.size - 1], z_curve[x_curve.size - 1]])
 
         u = C - Pp
         # normalize u
@@ -72,16 +72,18 @@ def generate_cylinder_coordinates(x_curve, y_curve, z_curve, R, C):
 
         # another vector in the circle plane orthogonal on w
         v = np.cross(u, w)
+        # normalize u
+        v /= np.linalg.norm(v)
 
         X, Y, Z = [P[i] + R * np.sin(theta) * w[i] + R * np.cos(theta) * v[i] for i in [0, 1, 2]]
-        # ax.scatter(X, Y, Z, color='blue', marker=",")
 
         X_all = np.append(X_all, X)
         Y_all = np.append(Y_all, Y)
         Z_all = np.append(Z_all, Z)
 
         for j in range(R - 1, 0, -1):
-            X, Y, Z = [P[i] + j * np.sin(theta) * w[i] + j * np.cos(theta) * v[i] for i in [0, 1, 2]]
+            th = np.linspace(0, 2 * np.pi, int(2 * np.pi * R * 3))
+            X, Y, Z = [P[i] + j * np.sin(th) * w[i] + j * np.cos(th) * v[i] for i in [0, 1, 2]]
             X_all = np.append(X_all, X)
             Y_all = np.append(Y_all, Y)
             Z_all = np.append(Z_all, Z)
@@ -105,7 +107,7 @@ def plot_for_offset(X, Y, Z, x_arc, y_arc, z_arc):
     return image
 
 
-def plot_points(X, Y, Z, limit, A, B, C, fig,  x_arc, y_arc, z_arc):
+def plot_points(X, Y, Z, limit, A, B, C, fig, x_arc, y_arc, z_arc):
     ax = fig.add_subplot(111, projection='3d')
     ax.mouse_init()
     ax.set_xlim(0, limit)
@@ -116,7 +118,7 @@ def plot_points(X, Y, Z, limit, A, B, C, fig,  x_arc, y_arc, z_arc):
     ax.plot(*zip(C, B), color='red', linestyle='dashed')
     # ax.plot(*zip(B, A), color='blue')
     ax.scatter(X, Y, Z, color='blue', marker='.')
-    #ax.scatter(x_arc, y_arc, z_arc, color='blue', marker='.')
+    # ax.scatter(x_arc, y_arc, z_arc, color='blue', marker='.')
     ax.scatter(A[0], A[1], A[2], color='red')
     ax.scatter(B[0], B[1], B[2], color='red')
     ax.text2D(0.05, 0.95, "Number of points generated: " + str(X.size), transform=ax.transAxes)
