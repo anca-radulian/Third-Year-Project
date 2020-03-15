@@ -6,7 +6,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import digitalPhantomGenerator
 import grapeStemGenerator
 import tkinter as tk
-from tkinter import messagebox, W, E, N, S
+from tkinter import messagebox, W
 
 
 def validate_inputs():
@@ -21,9 +21,9 @@ def validate_inputs():
         return False
 
     try:
-        if curve_angle.get() <= 0 or curve_angle.get() > 360:
-            messagebox.showerror(title="Wrong curve angle value", message="Please enter an angle value between 1 and "
-                                                                          "180")
+        if curve_angle.get() < 0 or curve_angle.get() > 359:
+            messagebox.showerror(title="Wrong curve angle value", message="Please enter an angle value between 0 and "
+                                                                          "360")
             return False
     except tk.TclError:
         messagebox.showerror(title="Wrong curve angle value", message="Please enter float values for the curve angle")
@@ -40,8 +40,8 @@ def validate_inputs():
         return False
 
     try:
-        if pgm_size.get() < 10 or pgm_size.get() > 300:
-            messagebox.showerror(title="Wrong PGM file size", message="Please enter a file size between 10 and 300")
+        if pgm_size.get() < 50:
+            messagebox.showerror(title="Wrong PGM file size", message="Please enter a file size bigger than 50")
             return False
     except tk.TclError:
         messagebox.showerror(title="Wrong PGM file size", message="Please enter integer values for the PGM file size")
@@ -71,21 +71,21 @@ def generate_stem_phantom():
         fig = grapeStemGenerator.create_figure()
         canvas = FigureCanvasTkAgg(fig, master=window2)  # A tk.DrawingArea.
         canvas.draw()
-        grapeStemGenerator.plot_points(X, Y, Z, pgm_size.get(), A, B, C, fig, x_arc, y_arc, z_arc)
+        grapeStemGenerator.plot_points(X, Y, Z, A, B, C, fig)
         toolbar = NavigationToolbar2Tk(canvas, window2)
         toolbar.update()
         canvas.get_tk_widget().pack()
 
-    digitalPhantomGenerator.create_digital_phantom_of_models('x', X, Y, Z)
-    digitalPhantomGenerator.create_digital_phantom_of_models('y', X, Y, Z)
-    digitalPhantomGenerator.create_digital_phantom_of_models('z', X, Y, Z)
+    digitalPhantomGenerator.create_digital_phantom_of_models('x', X, Y, Z, pgm_size.get())
+    digitalPhantomGenerator.create_digital_phantom_of_models('y', X, Y, Z, pgm_size.get())
+    digitalPhantomGenerator.create_digital_phantom_of_models('z', X, Y, Z, pgm_size.get())
     print("%.2f - time in seconds to generate plot with %d" % (time.time() - start, X.size))
     messagebox.showinfo(title="Successful generation", message="The PGM files have been generated successfully!")
 
 
 def message_plot():
     if create_plot.get() == 1:
-        ans = messagebox.askquestion(title="Generate Plot", message="The generation of the plot will take some time. "
+        ans = messagebox.askquestion(title="Generate Plot", message="The generation of the plot will take some extra time. "
                                                                     "Do you still want to proceed?")
 
         if ans == 'no':
@@ -93,8 +93,6 @@ def message_plot():
 
 
 window = tk.Tk()
-
-# to rename the title of the window
 window.title("Grape Stem Generator")
 
 coord1 = tk.Label(window, text="Enter coordinates for the first point").grid(row=0, columnspan=5, sticky=W)
@@ -128,8 +126,7 @@ coord2_label_z = tk.Label(window, text="Z").grid(row=5, column=4)
 curve_angle = tk.DoubleVar(value=150.0)
 radius_cylinder = tk.IntVar(value=5)
 
-curve_angle_label = tk.Label(window, text="Insert the curvature of the cylinder").grid(row=6, columnspan=3,
-                                                                                       sticky=W)
+curve_angle_label = tk.Label(window, text="Insert the curvature of the cylinder").grid(row=6, columnspan=3,                                                                                       sticky=W)
 radius_cylinder_label = tk.Label(window, text="Insert the radius of the cylinder").grid(row=7, columnspan=3,
                                                                                         sticky=W)
 curve_angle_entry = tk.Entry(window, textvariable=curve_angle).grid(row=6, column=3)
