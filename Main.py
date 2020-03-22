@@ -13,38 +13,38 @@ def validate_inputs():
     try:
         if coord1_x.get() < 0 or coord1_y.get() < 0 or coord1_z.get() < 0 \
                 or coord2_x.get() < 0 or coord2_y.get() < 0 or coord2_z.get() < 0:
-            messagebox.showerror(title="Wrong coordinates values", message="Please enter positive values for "
+            messagebox.showerror(title="Invalid coordinates values", message="Please enter positive values for "
                                                                            "coordinates")
             return False
     except tk.TclError:
-        messagebox.showerror(title="Wrong coordinate value", message="Please enter float values for coordinates")
+        messagebox.showerror(title="Invalid coordinate value type", message="Please enter numeric values for coordinates")
         return False
 
     try:
-        if curve_angle.get() < 0 or curve_angle.get() > 359:
-            messagebox.showerror(title="Wrong curve angle value", message="Please enter an angle value between 0 and "
+        if curve_angle.get() < 0 or curve_angle.get() > 360:
+            messagebox.showerror(title="Invalid curve angle value", message="Please enter an angle value between 0 and "
                                                                           "360")
             return False
     except tk.TclError:
-        messagebox.showerror(title="Wrong curve angle value", message="Please enter float values for the curve angle")
+        messagebox.showerror(title="Invalid curve angle value type", message="Please enter numeric values for the curve angle")
         return False
 
     try:
         if radius_cylinder.get() < 1:
-            messagebox.showerror(title="Wrong radius cylinder value", message="Please enter a positive value for the "
+            messagebox.showerror(title="Invalid radius cylinder value", message="Please enter a positive value for the "
                                                                               "cylinder radius")
             return False
     except tk.TclError:
-        messagebox.showerror(title="Wrong radius cylinder value", message="Please enter integer values for the "
+        messagebox.showerror(title="Invalid radius cylinder value", message="Please enter integer values for the "
                                                                           "cylinder radius")
         return False
 
     try:
         if pgm_size.get() < 50:
-            messagebox.showerror(title="Wrong PGM file size", message="Please enter a file size bigger than 50")
+            messagebox.showerror(title="Invalid PGM file size", message="Please enter a file size bigger than 50")
             return False
     except tk.TclError:
-        messagebox.showerror(title="Wrong PGM file size", message="Please enter integer values for the PGM file size")
+        messagebox.showerror(title="Invalid PGM file size", message="Please enter integer values for the PGM file size")
 
     return True
 
@@ -55,6 +55,7 @@ def on_closing(window2):
 
 
 def generate_stem_phantom():
+    # Variable used to measure time of execution
     start = time.time()
     if not validate_inputs():
         return
@@ -97,9 +98,9 @@ window.title("Grape Stem Generator")
 
 coord1 = tk.Label(window, text="Enter coordinates for the first point").grid(row=0, columnspan=5, sticky=W)
 
-coord1_x = tk.DoubleVar(value=3)
-coord1_y = tk.DoubleVar(value=5)
-coord1_z = tk.DoubleVar(value=38)
+coord1_x = tk.DoubleVar()
+coord1_y = tk.DoubleVar()
+coord1_z = tk.DoubleVar()
 
 coord1_entry_x = tk.Entry(window, textvariable=coord1_x).grid(row=1, column=1)
 coord1_entry_y = tk.Entry(window, textvariable=coord1_y).grid(row=1, column=3)
@@ -111,9 +112,9 @@ coord1_label_z = tk.Label(window, text="Z").grid(row=1, column=4)
 
 coord2 = tk.Label(window, text="Enter coordinates for the second point").grid(row=4, columnspan=5, sticky=W)
 
-coord2_x = tk.DoubleVar(value=35)
-coord2_y = tk.DoubleVar(value=15.0)
-coord2_z = tk.DoubleVar(value=38.0)
+coord2_x = tk.DoubleVar()
+coord2_y = tk.DoubleVar()
+coord2_z = tk.DoubleVar()
 
 coord2_entry_x = tk.Entry(window, textvariable=coord2_x).grid(row=5, column=1)
 coord2_entry_y = tk.Entry(window, textvariable=coord2_y).grid(row=5, column=3)
@@ -123,8 +124,8 @@ coord2_label_x = tk.Label(window, text="X").grid(row=5)
 coord2_label_y = tk.Label(window, text="Y").grid(row=5, column=2)
 coord2_label_z = tk.Label(window, text="Z").grid(row=5, column=4)
 
-curve_angle = tk.DoubleVar(value=150.0)
-radius_cylinder = tk.IntVar(value=5)
+curve_angle = tk.DoubleVar()
+radius_cylinder = tk.IntVar()
 
 curve_angle_label = tk.Label(window, text="Insert the curvature of the cylinder").grid(row=6, columnspan=3,                                                                                       sticky=W)
 radius_cylinder_label = tk.Label(window, text="Insert the radius of the cylinder").grid(row=7, columnspan=3,
@@ -145,24 +146,3 @@ c = tk.Checkbutton(window, text="Create plot of model", variable=create_plot,
 button = tk.Button(window, text="Generate", command=generate_stem_phantom)
 button.grid(row=10, column=3)
 window.mainloop()
-
-# Main program (first will be GUI stuff)
-# A = [3, 15, 38]
-# B = [35, 15, 38]
-# curve_angle = 150
-# radius_cylinder = 5
-# pgm_size = 50
-#
-# A = [110.1, 6.0, 79.1]
-# B = [110.0, 240.0, 79.0]
-# curve_angle = 60
-# radius_cylinder = 10
-# pgm file size = 250
-#
-
-# Generate GIFs
-# matplotlib.use('TkAgg')
-# x_arc, y_arc, z_arc, C = grapeStemGenerator.generate_arc_coordinates(A, B, curve_angle)
-# X, Y, Z = grapeStemGenerator.generate_cylinder_coordinates(x_arc, y_arc, z_arc, radius_cylinder, C)
-# kwargs_write = {'fps': 1.0, 'quantizer': 'nq'}
-# imageio.mimsave('./alg3.gif', [grapeStemGenerator.plot_for_offset(X[0:(i+1)*300*5*50], Y[0:(i+1)*300*5*50], Z[0:(i+1)*300*5*50], x_arc, y_arc, z_arc) for i in range(10)], fps=1)

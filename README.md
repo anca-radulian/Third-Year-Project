@@ -4,7 +4,7 @@ This program generates the set of points of a 3d curved cylinder and produces a 
 
 The input data needed:
  - 2 points in 3D (positive values only)
- - Curvature angle of the cylinder (between 0 and 360 - _if choose to create a model with an angle bigger than 270 the model will become quite big to accommodate the angle_)
+ - Curvature angle of the cylinder (between 0 and 360 - _if choose to create a model with an angle bigger than 270 the model might become quite big to accommodate the angle_)
  - Radius of the cylinder (positive integer)
  - Size for the PGM file in px (no smaller than 50px)
 
@@ -17,4 +17,12 @@ The following imports are needed to run the project:
  - NumPy: 
 ```
 pip3 install numpy
+```
+
+### How to Run
+
+ - Run the main class. Either from terminal or IDE.
+
+```
+python3 Main.py
 ```

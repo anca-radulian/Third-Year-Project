@@ -5,50 +5,58 @@ from mpl_toolkits.mplot3d import Axes3D
 
 # --------------------------------------- METHODS -----------------------------------
 
-# Let V be the normal vector on the plane defined by middle point of AB and the centre O. Then find a random point P
-# using the equation of the plane xv(x−xm)+yv(y−ym)+zv(z−zm)=0.
+#  Generate the centre of the circle and a set of points that describe the axis of the cylinder based on its curvature.
 def generate_arc_coordinates(A, B, curve_angle):
     A = np.array(A, dtype=float)
     B = np.array(B, dtype=float)
 
-    if curve_angle % 180 == 0:  # to avoid having angles of multiple of pi, since sin(angle) will be 0
+    # Avoid having angles multiple of pi, since sin(angle) will be 0 and division result will tent towards infinity
+    if curve_angle % 180 == 0:
         curve_angle += 0.01
 
     phi = np.deg2rad(curve_angle)
     sin_phi = np.sin(phi)
 
+    # Take random x and y coordinates for point P and use plane equation [xv(x−xm)+yv(y−ym)+zv(z−zm)=0] to calculate
+    # a z coordinate which translates point P in the plane perpendicular to segment AB in M (middle point of AB)
     P = np.array([5.0, 30.0, 0.0])  # random point
+
+    # As x and y were chosen and z will be calculated, there will be division by z value of V (perpendicular vector).
+    # To avoid division by 0 which should return infinity, B's z value is incremented by a negligible value.
     if A[2] == B[2]:
-        B[2] = B[2] + 0.01  # so the M point won't have the z coord 0
+        B[2] = B[2] + 0.01
     M = (A + B) / 2
-    AB = np.linalg.norm(A - B)
     V = A - B
 
-    # Using plane equation calculate P
+    # Using plane equation calculate P's z coordinate
     P[2] = (-V[0] * (P[0] - M[0]) - V[1] * (P[1] - M[1])) / V[2] + M[2]
 
-    # Height of the arc segment
+    # Height of the triangle determined by A, B and Centre of the circle
+    AB = np.linalg.norm(A - B)
     H = AB / (2 * np.tan(phi / 2))
-    Pp = P - M
+    Pm = P - M
 
-    Cp = H / np.linalg.norm(P - M) * Pp
-    C = Cp + M
+    # Determine centre of the circle (C) placed at distance H from point M on line MP
+    Cm = H / np.linalg.norm(P - M) * Pm
+    C = Cm + M
 
     # The slerp formula is coordinate-free and gives you a constant-speed parametrization of the arc.
     # P = C + (sin(𝛼−𝜃)𝑢+sin(𝜃)𝑣) /sin(𝛼)
-    # You should use values of θ between zero and ϕ, where ϕ is the angle between OA and OB.
+    # You should use values of θ between zero and ϕ, where ϕ is the angle between CA and CB.
     X_arc = (A - C)
     Y_arc = (B - C)
 
+    # The arc is constructed using 3 x arc_length points
     radius = np.linalg.norm(A - C)
-    arc_length = (curve_angle / 180) * np.pi * radius
+    points_on_arc = 3 * int((curve_angle / 180) * np.pi * radius)
 
     # put a cap limit for the number of points generated for the arc
-    if arc_length > 1000:
-        arc_length = 1000
+    if points_on_arc > 1000:
+        points_on_arc = 1000
 
-    # The central angle is divided in N number of sections
-    th = np.linspace(0, phi, int(arc_length * 3))
+    th = np.linspace(0, phi, points_on_arc)
+
+    # Generate points on the arc
     x_curve, y_curve, z_curve \
         = [C[i] + ((sin_phi * np.cos(th) - np.cos(phi) * np.sin(th)) * X_arc[i] + np.sin(th) * Y_arc[i]) /sin_phi for i in [0, 1, 2]]
 
@@ -56,67 +64,44 @@ def generate_arc_coordinates(A, B, curve_angle):
 
 
 # ================================= Cylinder plotting =================================================================
-# Equation of the circle
+# Equation of a circle in 3D
 #    (x,y,z) = (x0, y0, z0) + R cos(theta)u + R sin(theta)v
 # where theta varies over the interval 0 to 2pi and t ranges over the
 # the set of real numbers and
 # u and v are unit vectors that are mutually perpendicular
+# Each disc will be made out of concentric circles
 def generate_cylinder_coordinates(x_curve, y_curve, z_curve, R, C):
-    # Determine how many points will be used to draw the circle
-    theta = np.linspace(0, 2 * np.pi, int(2 * np.pi * R * 3))
+
+    # first vector in the plane of the circle
+    # Determined by points A and B (end points of the arc)
+    u = np.array([x_curve[0], y_curve[0], z_curve[0]]) - np.array(
+        [x_curve[x_curve.size - 1], y_curve[y_curve.size - 1], z_curve[z_curve.size - 1]])
+    # normalize u
+    u /= np.linalg.norm(u)
 
     X_all, Y_all, Z_all = [], [], []
     for y in range(0, x_curve.size):
+        #  current point on the arc
         P = np.array([x_curve[y], y_curve[y], z_curve[y]])
 
-        # vector in the plane of the circle
+        # the second vector in the plane of the circle
+        # Determined by the current point on the arc and the centre of the circle
         w = C - P
         w /= np.linalg.norm(w)
 
-        if y == x_curve.size - 1:
-            Pp = np.array([x_curve[0], y_curve[0], z_curve[0]])
-        else:
-            Pp = np.array([x_curve[x_curve.size - 1], y_curve[x_curve.size - 1], z_curve[x_curve.size - 1]])
-
-        u = C - Pp
-        # normalize u
-        u /= np.linalg.norm(u)
-
-        # another vector in the circle plane orthogonal on w
+        # another vector in the concentric circles' plane, orthogonal on w
         v = np.cross(u, w)
-        # normalize u
         v /= np.linalg.norm(v)
 
-        X, Y, Z = [P[i] + R * np.sin(theta) * w[i] + R * np.cos(theta) * v[i] for i in [0, 1, 2]]
-
-        X_all = np.append(X_all, X)
-        Y_all = np.append(Y_all, Y)
-        Z_all = np.append(Z_all, Z)
-
-        for j in range(R - 1, -1, -1):
-            th = np.linspace(0, 2 * np.pi, int(2 * np.pi * R * 3))
+        # Generate inner circles to create a disc
+        for j in np.arange(R, -0.5, -0.5):
+            th = np.linspace(0, 2 * np.pi, int(2 * np.pi * j * 3))
             X, Y, Z = [P[i] + j * np.sin(th) * w[i] + j * np.cos(th) * v[i] for i in [0, 1, 2]]
             X_all = np.append(X_all, X)
             Y_all = np.append(Y_all, Y)
             Z_all = np.append(Z_all, Z)
 
     return X_all, Y_all, Z_all
-
-
-def plot_for_offset(X, Y, Z, x_arc, y_arc, z_arc):
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.scatter(X, Y, Z, color='blue', marker='.')
-    ax.set_xlim(0, 50)
-    ax.set_ylim(0, 50)
-    ax.set_zlim(0, 50)
-
-    # Used to return the plot as an image rray
-    fig.canvas.draw()  # draw the canvas, cache the renderer
-    image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
-    image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
-
-    return image
 
 
 def plot_points(X, Y, Z,  A, B, C, fig):
